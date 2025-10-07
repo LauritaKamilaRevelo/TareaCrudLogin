@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios Registrados</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    #usuariosList {
+      margin-top: 20px;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .usuario {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .usuario:last-child {
+      border-bottom: none;
+    }
+    .acciones button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .editarBtn {
+      background: #3b82f6;
+      color: white;
+    }
+    .editarBtn:hover {
+      background: #2563eb;
+    }
+    .eliminarBtn {
+      background: crimson;
+      color: white;
+    }
+    .eliminarBtn:hover {
+      background: darkred;
+    }
+    #logoutBtn {
+      background: gray;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #logoutBtn:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+  <h1>Usuarios Registrados</h1>
+  <button id="logoutBtn">Cerrar sesión</button>
+  <div id="usuariosList">
+    <p>Cargando usuarios...</p>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:5000/api/users";
+    const token = localStorage.getItem("token");
+    const usuariosList = document.getElementById("usuariosList");
+
+    // 🚨 Comprobación de seguridad
+    if (!token) {
+      // Si no hay token, redirige directo a logout
+      window.location.href = "logout.html";
+    }
+
+    // Cargar usuarios
+    async function cargarUsuarios() {
+      try {
+        const res = await fetch(API_URL, {
+          headers: { Authorization: "Bearer " + token }
+        });
+        
+        // Si el servidor devuelve 401 (token inválido o expirado)
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "logout.html"; // redirige a logout
+          return;
+        }
+
+        const data = await res.json();
+
+        if (!data.success) {
+          usuariosList.innerHTML = "<p>Error al cargar usuarios</p>";
+          return;
+        }
+
+        if (data.usuarios.length === 0) {
+          usuariosList.innerHTML = "<p>No hay usuarios registrados</p>";
+          return;
+        }
+
+        usuariosList.innerHTML = "";
+        data.usuarios.forEach(u => {
+          const div = document.createElement("div");
+          div.className = "usuario";
+          div.innerHTML = `
+            <span><b>${u.nombre}</b> - ${u.email}</span>
+            <div class="acciones">
+              <button class="editarBtn" onclick="editarUsuario('${u._id}', '${u.nombre}', '${u.email}')">Editar</button>
+              <button class="eliminarBtn" onclick="eliminarUsuario('${u._id}')">Eliminar</button>
+            </div>
+          `;
+          usuariosList.appendChild(div);
+        });
+      } catch (err) {
+        usuariosList.innerHTML = "<p>Error al conectar con el servidor</p>";
+      }
+    }
+
+    // Eliminar usuario
+    async function eliminarUsuario(id) {
+      if (!confirm("¿Seguro que quieres eliminar este usuario?")) return;
+
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json();
+      alert(data.message || "Usuario eliminado");
+      cargarUsuarios();
+    }
+
+    // Editar usuario
+    async function editarUsuario(id, nombre, email) {
+      const nuevoNombre = prompt("Nuevo nombre:", nombre);
+      const nuevoEmail = prompt("Nuevo email:", email);
+
+      if (!nuevoNombre || !nuevoEmail) return;
+
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({ nombre: nuevoNombre, email: nuevoEmail })
+      });
+
+      const data = await res.json();
+      alert(data.message || "Usuario actualizado");
+      cargarUsuarios();
+    }
+
+    // Logout manual
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "logout.html"; // redirige a página de cierre
+    });
+
+    // Inicializar
+    cargarUsuarios();
+  </script>
+</body>
+</html>

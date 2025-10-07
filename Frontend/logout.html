@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logout</title>
+  <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+  <div class="container">
+    <h2>Has cerrado sesión 👋</h2>
+    <p>Gracias por visitar la aplicación.</p>
+    <button id="logoutBtn">Iniciar sesión de nuevo</button>
+  </div>
+
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      window.location.href = "index.html"; 
+    });
+  </script>
+</body>
+</html>
