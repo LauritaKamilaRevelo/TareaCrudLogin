@@ -26,8 +26,6 @@ El proyecto está dividido en **Backend (Node.js + Express + MongoDB)** y **Fron
 ## ⚙️ Instalación y ejecución
 
 ### 🔹 Clonar el repositorio
-```bash
-git clone https://github.com/tuusuario/ProyectoCRUD.git
 
 **Acceder al Backend**
 cd ProyectoCRUD/Backend
